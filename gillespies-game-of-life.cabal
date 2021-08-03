@@ -1,0 +1,25 @@
+cabal-version:      3.0
+name:               gillespies-game-of-life
+version:            0.1.0
+synopsis:           Submission for GDFG's Monthly Game Jam #8
+description:        Submission for GDFG's Monthly Game Jam #8
+homepage:           https://github.com/sgillespie/game-of-life
+
+bug-reports:        https://github.com/sgillespie/game-of-life/issues
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Sean D Gillespie
+maintainer:         sean@mistersg.net
+
+copyright:          Copyright 2021 Sean D Gillespie
+category:           Game
+
+executable gillespies-game-of-life
+    main-is:          Main.hs
+    -- Modules included in this executable, other than Main.
+    -- other-modules:
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    build-depends:    base ^>=4.13.0.0
+    hs-source-dirs:   app
+    default-language: Haskell2010
