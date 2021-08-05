@@ -23,6 +23,7 @@ executable gillespies-game-of-life
       linear,
       resourcet,
       sdl2,
+      text,
       transformers,
       unliftio-core,
       vector,
@@ -40,4 +41,13 @@ executable gillespies-game-of-life
       OverloadedLists,
       RecordWildCards
     -- other-extensions:
-    -- other-modules
+    other-modules:
+      Engine.Domain,
+      Engine.Domain.Frame,
+      Engine.Domain.Vertex,
+      Engine.Init,
+      Engine.Monad,
+      Engine.Monad.Cmd,
+      Engine.Monad.Vulkan,
+      Engine.Monad.VulkanFrame,
+      Engine.Window,

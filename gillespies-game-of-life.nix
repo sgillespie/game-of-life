@@ -1,5 +1,5 @@
 { mkDerivation, base, bytestring, lib, linear, resourcet, sdl2
-, transformers, unliftio-core, vector, vulkan, vulkan-utils
+, text, transformers, unliftio-core, vector, vulkan, vulkan-utils
 , VulkanMemoryAllocator
 }:
 mkDerivation {
@@ -9,8 +9,8 @@ mkDerivation {
   isLibrary = false;
   isExecutable = true;
   executableHaskellDepends = [
-    base bytestring linear resourcet sdl2 transformers unliftio-core
-    vector vulkan vulkan-utils VulkanMemoryAllocator
+    base bytestring linear resourcet sdl2 text transformers
+    unliftio-core vector vulkan vulkan-utils VulkanMemoryAllocator
   ];
   homepage = "https://github.com/sgillespie/game-of-life";
   description = "Submission for GDFG's Monthly Game Jam #8";
