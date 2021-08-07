@@ -1,5 +1,6 @@
 module Engine.Render (renderFrame, runCommandBuffers) where
 
+import Foreign.C.Types
 import Control.Monad.Trans.Reader
 import qualified Data.Vector as V
 
@@ -53,8 +54,8 @@ renderFrame commandBuffers = do
   
   return ()
 
-runCommandBuffers :: MonadUnliftIO m => Frame -> V.Vector CommandBuffer -> m ()
-runCommandBuffers frame' commandBuffers = do
+runCommandBuffers :: MonadUnliftIO m => [CUShort] -> Frame -> V.Vector CommandBuffer -> m ()
+runCommandBuffers vertexIndices frame' commandBuffers = do
   let beginInfo = CommandBufferBeginInfo
           { next = (),
             flags = zero,
@@ -64,10 +65,10 @@ runCommandBuffers frame' commandBuffers = do
 
   V.forM_ (V.zip commandBuffers framebuffers) $ \(commandBuffer, framebuffer) ->
     runCmdT commandBuffer beginInfo $ 
-        recordCommandBuffer frame' framebuffer
+        recordCommandBuffer vertexIndices frame' framebuffer
 
-recordCommandBuffer :: MonadUnliftIO m => Frame -> Framebuffer -> CmdT m ()
-recordCommandBuffer Frame{..} framebuffer = do
+recordCommandBuffer :: MonadUnliftIO m => [CUShort] -> Frame -> Framebuffer -> CmdT m ()
+recordCommandBuffer vertexIndices Frame{..} framebuffer = do
   commandBuffer <- CmdT ask
 
   let renderPassInfo = RenderPassBeginInfo

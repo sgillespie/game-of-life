@@ -56,4 +56,5 @@ executable gillespies-game-of-life
       Engine.Shaders.FragShader,
       Engine.Shaders.VertexShader,
       Engine.Utils,
-      Engine.Window
+      Engine.Window,
+      Game.Vertices

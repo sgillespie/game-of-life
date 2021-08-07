@@ -44,7 +44,8 @@ withWindow title width height = do
   let config = defaultWindow
         { windowInitialSize = V2 (fromIntegral width) (fromIntegral height),
           windowGraphicsContext = VulkanContext,
-          -- windowResizable = True,
+          windowMode = FullscreenDesktop,
+          windowResizable = True,
           windowHighDPI = True,
           windowVisible = True
         }

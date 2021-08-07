@@ -1,25 +1,20 @@
 module Engine.GraphicsPipeline
   ( withVulkanFrame,
-    withCommandBuffers',
-    vertices,
-    vertexIndices
+    withCommandBuffers'
   ) where
 
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 import Data.Bits
 import Data.Traversable
-import Data.Word
 import Foreign.C.Types
 import Foreign.Marshal.Array
 import Foreign.Ptr
 import Foreign.Storable
 import GHC.Clock (getMonotonicTime)
 import qualified Data.Vector as V
-import qualified Data.Vector.Storable as S
 
 import Control.Monad.Trans.Resource
-import Linear hiding (zero)
 import Vulkan.CStruct.Extends
 import Vulkan.Core10 hiding (alignment, withImage, withMappedMemory)
 import Vulkan.Extensions.VK_KHR_swapchain
@@ -32,19 +27,8 @@ import Engine.Monad
 import Engine.Shaders
 import Engine.Utils
 
-vertices :: [Vertex]
-vertices
-  = [ Vertex (V2 (-0.5) (-0.5)) (V3 1 0 0) (V2 1 0),
-      Vertex (V2   0.5  (-0.5)) (V3 0 1 0) (V2 0 0),
-      Vertex (V2   0.5    0.5)  (V3 0 0 1) (V2 0 1),
-      Vertex (V2 (-0.5)   0.5)  (V3 1 1 1) (V2 1 1)
-    ]
-
-vertexIndices :: [CUShort]
-vertexIndices = [0, 1, 2, 2, 3, 0]
-
-withVulkanFrame :: SurfaceKHR -> Vulkan Frame
-withVulkanFrame surface = do
+withVulkanFrame :: SurfaceKHR -> [Vertex] -> [CUShort] -> Vulkan Frame
+withVulkanFrame surface vertices vertexIndices = do
   device <- getDevice
   handles <- Vulkan ask
   allocator <- getAllocator
@@ -60,8 +44,8 @@ withVulkanFrame surface = do
   resources <- allocate createInternalState closeInternalState
   start <- liftIO getMonotonicTime
   fence <- withFence' device
-  vertexBuffer <- withVertexBuffer allocator
-  indexBuffer <- withIndexBuffer allocator
+  vertexBuffer <- withVertexBuffer vertices allocator
+  indexBuffer <- withIndexBuffer vertexIndices allocator
 
   return Frame
     { fIndex = 0,
@@ -259,7 +243,7 @@ withGraphicsPipeline pipelineLayout renderPass extent@(Extent2D width height) = 
           rasterizerDiscardEnable = False,
           polygonMode = POLYGON_MODE_FILL,
           cullMode = CULL_MODE_BACK_BIT,
-          frontFace = FRONT_FACE_COUNTER_CLOCKWISE,
+          frontFace = FRONT_FACE_CLOCKWISE,
           depthBiasEnable = False,
           depthBiasConstantFactor = 0,
           depthBiasClamp = 0,
@@ -358,8 +342,8 @@ withSemaphores device = unwrapM2 (withSemaphore' zero, withSemaphore' zero)
 withFence' :: MonadResource m => Device -> m Fence
 withFence' device = snd <$> withFence device zero Nothing allocate
 
-withVertexBuffer :: Allocator -> Vulkan Buffer
-withVertexBuffer allocator = do
+withVertexBuffer :: [Vertex] -> Allocator -> Vulkan Buffer
+withVertexBuffer vertices allocator = do
   let bufferSize = fromIntegral $ sizeOf (head vertices) * length vertices
       stageFlags = MEMORY_PROPERTY_HOST_VISIBLE_BIT .|. MEMORY_PROPERTY_HOST_COHERENT_BIT
       stageUsage = BUFFER_USAGE_TRANSFER_SRC_BIT
@@ -382,9 +366,9 @@ withVertexBuffer allocator = do
   
   return buffer
 
-withIndexBuffer :: Allocator -> Vulkan Buffer
-withIndexBuffer allocator = do
-  let bufferSize = fromIntegral $ sizeOf (head vertexIndices) * length vertexIndices
+withIndexBuffer :: [CUShort] -> Allocator -> Vulkan Buffer
+withIndexBuffer indices allocator = do
+  let bufferSize = fromIntegral $ sizeOf (head indices) * length indices
       stageFlags = MEMORY_PROPERTY_HOST_VISIBLE_BIT .|. MEMORY_PROPERTY_HOST_COHERENT_BIT
       stageUsage = BUFFER_USAGE_TRANSFER_SRC_BIT
       indexFlags = MEMORY_PROPERTY_DEVICE_LOCAL_BIT
@@ -395,7 +379,7 @@ withIndexBuffer allocator = do
 
   -- Upload the indices
   (unmapStaging, data') <- withMappedMemory allocator stagingAlloc allocate
-  liftIO $ pokeArray (castPtr data') vertexIndices
+  liftIO $ pokeArray (castPtr data') indices
   release unmapStaging
 
   -- Create the vertex buffer

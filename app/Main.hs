@@ -1,11 +1,10 @@
 module Main where
 
 import Control.Monad.IO.Class
-import Data.Foldable
 import Data.Vector (Vector())
 
 import Control.Monad.Trans.Resource
-import SDL (Window(), showWindow, time)
+import SDL (showWindow, time)
 import Vulkan.Core10
 
 import Engine.Domain
@@ -14,6 +13,7 @@ import Engine.Init
 import Engine.Monad
 import Engine.Render
 import Engine.Window
+import Game.Vertices
 
 main :: IO ()
 main = runResourceT $ do
@@ -29,8 +29,8 @@ main = runResourceT $ do
   -- Go
   start <- (time :: MonadIO m => m Double)
 
-  let frame :: Window -> Vector CommandBuffer -> Frame -> Vulkan (Maybe Frame)
-      frame window buffers frame' = do
+  let frame :: Vector CommandBuffer -> Frame -> Vulkan (Maybe Frame)
+      frame buffers frame' = do
         quit <- shouldQuit (TimeLimit 6)
         if quit
           then pure Nothing
@@ -45,11 +45,11 @@ main = runResourceT $ do
     reportPhysicalDevice
     showWindow window
 
-    initialFrame <- withVulkanFrame surface
+    initialFrame <- withVulkanFrame surface vertices vertexIndices
     commandBuffers <- withCommandBuffers' initialFrame
-    runCommandBuffers initialFrame commandBuffers
+    runCommandBuffers vertexIndices initialFrame commandBuffers
     
-    loopJust (frame window commandBuffers) initialFrame
+    loopJust (frame commandBuffers) initialFrame
 
 reportPhysicalDevice :: Vulkan ()
 reportPhysicalDevice = do

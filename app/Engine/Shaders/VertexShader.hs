@@ -8,29 +8,22 @@ import Vulkan.Utils.ShaderQQ.HLSL.Shaderc (vert)
 vertexShaderCode :: ByteString
 vertexShaderCode
   = [vert|
-      const static float2 positions[3] = {
-        {0.0, -0.5},
-        {0.5, 0.5},
-        {-0.5, 0.5}
+      struct VSInput {
+        float2 position: POSITION;
+        float3 color: COLOR;
       };
 
-      const static float3 colors[3] = {
-        {1.0, 1.0, 0.0},
-        {0.0, 1.0, 1.0},
-        {1.0, 0.0, 1.0}
-      };
-
-      struct VSOutput
-      {
+      struct VSOutput {
         float4 pos : SV_POSITION;
         [[vk::location(0)]] float3 col;
       };
 
-      VSOutput main(const uint i : SV_VertexID)
-      {
+      VSOutput main(const uint i : SV_VertexID, VSInput input) {
         VSOutput output;
-        output.pos = float4(positions[i], 0, 1.0);
-        output.col = colors[i];
+        
+        output.pos = float4(input.position, 0, 1.0);
+        output.col = input.color;
+
         return output;
       }
     |]
