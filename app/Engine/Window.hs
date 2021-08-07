@@ -1,5 +1,6 @@
 module Engine.Window
   ( RefreshLimit(..),
+    requiredWindowExts,
     shouldQuit,
     withSdl,
     withWindow,
@@ -11,6 +12,8 @@ import Control.Monad.IO.Class
 import Data.Maybe
 import Data.Text hiding (any)
 import Foreign.Ptr
+import qualified Data.ByteString as B
+import qualified Data.Vector as V
 
 import Control.Monad.Trans.Resource
 import SDL
@@ -24,6 +27,11 @@ data RefreshLimit
   | EventLimit    -- ^ Indefinite timeout
   deriving (Eq, Show)
 
+requiredWindowExts :: MonadIO m => Window -> m (V.Vector B.ByteString)
+requiredWindowExts window
+  = liftIO $ vkGetInstanceExtensions window
+  >>= traverse B.packCString . V.fromList
+
 withSdl :: MonadResource m => m ()
 withSdl = void $ allocate_ (initialize flags) quit
   where flags = [InitEvents] :: [InitFlag]
@@ -36,7 +44,7 @@ withWindow title width height = do
   let config = defaultWindow
         { windowInitialSize = V2 (fromIntegral width) (fromIntegral height),
           windowGraphicsContext = VulkanContext,
-          windowResizable = True,
+          -- windowResizable = True,
           windowHighDPI = True,
           windowVisible = True
         }

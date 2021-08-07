@@ -1,4 +1,4 @@
-module Engine.Domain.Frame (Frame(..)) where
+module Engine.Domain.Frame (Frame(..), advanceFrame) where
 
 import Data.Vector
 import Data.Word
@@ -6,7 +6,6 @@ import Data.Word
 import Control.Monad.Trans.Resource
 import Vulkan.Core10
 import Vulkan.Extensions.VK_KHR_swapchain
-import VulkanMemoryAllocator (Allocation)
 
 -- |Per-frame resources
 data Frame = Frame
@@ -23,8 +22,9 @@ data Frame = Frame
     fRenderFinished :: Semaphore,
     fVertexBuffer :: Buffer,
     fIndexBuffer :: Buffer,
-    fUniformBuffers :: Vector (Buffer, Allocation),
-    fDescriptorSets :: Word32 -> DescriptorSet,
     fResources :: (ReleaseKey, InternalState),
     fGpuWork :: Fence
   }
+
+advanceFrame :: MonadResource m => Frame -> m Frame
+advanceFrame f = return f { fIndex = succ (fIndex f) }

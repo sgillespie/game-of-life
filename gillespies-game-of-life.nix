@@ -1,6 +1,10 @@
-{ mkDerivation, base, bytestring, lib, linear, resourcet, sdl2
-, text, transformers, unliftio-core, vector, vulkan, vulkan-utils
-, VulkanMemoryAllocator
+{ glfw3, glm, libX11, libXxf86vm, libXrandr, libXi, safe, shaderc,
+  spirv-tools, vulkan-headers, vulkan-loader, vulkan-tools, vulkan-tools-lunarg,
+  vulkan-validation-layers,
+  
+  mkDerivation, base, bytestring, lib, linear, resourcet, sdl2,
+  text, transformers, unliftio-core, vector, vulkan, vulkan-utils,
+  VulkanMemoryAllocator
 }:
 mkDerivation {
   pname = "gillespies-game-of-life";
@@ -8,6 +12,22 @@ mkDerivation {
   src = ./.;
   isLibrary = false;
   isExecutable = true;
+  executableSystemDepends = [
+    glfw3
+    glm
+    libX11
+    libXxf86vm
+    libXrandr
+    libXi
+    safe
+    shaderc
+    spirv-tools
+    vulkan-headers
+    vulkan-loader
+    vulkan-tools
+    vulkan-tools-lunarg
+    vulkan-validation-layers
+  ];
   executableHaskellDepends = [
     base bytestring linear resourcet sdl2 text transformers
     unliftio-core vector vulkan vulkan-utils VulkanMemoryAllocator
