@@ -223,7 +223,7 @@ withGraphicsPipeline pipelineLayout renderPass extent@(Extent2D width height) = 
 
       vertexAssemblyInfo = PipelineInputAssemblyStateCreateInfo
         { flags = zero,
-          topology = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+          topology = PRIMITIVE_TOPOLOGY_LINE_LIST,
           primitiveRestartEnable = False
         }
 
@@ -248,7 +248,7 @@ withGraphicsPipeline pipelineLayout renderPass extent@(Extent2D width height) = 
           depthBiasConstantFactor = 0,
           depthBiasClamp = 0,
           depthBiasSlopeFactor = 0,
-          lineWidth = 1
+          lineWidth = 4
         }
 
       multisampleInfo = PipelineMultisampleStateCreateInfo

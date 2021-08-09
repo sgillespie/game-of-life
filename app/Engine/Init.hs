@@ -52,7 +52,7 @@ withVulkanHandles
   -> SurfaceKHR
   -> m VulkanHandles
 withVulkanHandles instance' surface = do
-  physicalDevice <- choosePhysicalDevice instance'
+  physicalDevice <- choosePhysicalDevice instance' surface
   (graphicsFamilyIndex, presentFamilyIndex)
     <- getQueueFamilyIndices physicalDevice surface
   device <- withDevice' physicalDevice [graphicsFamilyIndex, presentFamilyIndex]
@@ -76,15 +76,28 @@ withVulkanHandles instance' surface = do
 choosePhysicalDevice
   :: MonadIO m
   => Instance
+  -> SurfaceKHR
   -> m PhysicalDevice
-choosePhysicalDevice instance' = do
+choosePhysicalDevice instance' surface = do
   -- Look for a device with Swapchain support
   let isDeviceSuitable device = do
         (_, exts) <- enumerateDeviceExtensionProperties device Nothing
+        features <- getPhysicalDeviceFeatures device
+        (_, presentModes) <- getPhysicalDeviceSurfacePresentModesKHR device surface
+        (_, formats) <- getPhysicalDeviceSurfaceFormatsKHR device surface
+        
         let swapchainSupport
               = V.any ((KHR_SWAPCHAIN_EXTENSION_NAME ==) . extensionName) exts
-
-        if swapchainSupport
+            wideLines' = wideLines features
+            mailboxMode = V.any (PRESENT_MODE_MAILBOX_KHR ==) presentModes
+            desiredFormat
+              = V.any
+                  (\(SurfaceFormatKHR format colorSpace)
+                   -> format == FORMAT_B8G8R8A8_SRGB
+                   && colorSpace == COLOR_SPACE_SRGB_NONLINEAR_KHR)
+                  formats
+        
+        if swapchainSupport && wideLines' && mailboxMode && desiredFormat
           then Just <$> getPhysicalDeviceProperties device
           else pure Nothing
   
@@ -143,7 +156,7 @@ withDevice' physicalDevice queueIndices = do
 
       createQueueInfo idx = DeviceQueueCreateInfo () zero idx [1]
 
-      features = zero { samplerAnisotropy = True }
+      features = zero { wideLines = True }
 
   (_, device) <- withDevice physicalDevice deviceCreateInfo Nothing allocate
   return device
